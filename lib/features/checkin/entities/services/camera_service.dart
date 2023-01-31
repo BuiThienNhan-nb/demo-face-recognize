@@ -3,8 +3,12 @@ import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:injectable/injectable.dart';
+
+import 'face_detector_service.dart';
+import 'ml_service.dart';
 
 @injectable
 class CameraService {
@@ -13,6 +17,11 @@ class CameraService {
 
   InputImageRotation? _cameraRotation;
   InputImageRotation? get cameraRotation => _cameraRotation;
+
+  bool _detectingFaces = false;
+  bool pictureTaken = false;
+  Face? faceDetected;
+  bool _saving = false;
 
   String? _imagePath;
   String? get imagePath => _imagePath;
@@ -67,8 +76,43 @@ class CameraService {
   }
 
   startStream(Function(CameraImage) onAvailable) async {
+    MLService mlService = GetIt.I<MLService>();
+    FaceDetectorService detectorService = GetIt.I<FaceDetectorService>();
     try {
-      await _cameraController?.startImageStream(onAvailable);
+      await _cameraController?.startImageStream((onAvailable) async {
+        if (cameraController != null) {
+          try {
+            if (_detectingFaces) return;
+
+            _detectingFaces = true;
+
+            try {
+              await detectorService.detectFacesFromImage(onAvailable);
+
+              if (detectorService.faces.isNotEmpty) {
+                faceDetected = detectorService.faces[0];
+
+                if (_saving) {
+                  mlService.setCurrentPrediction(onAvailable, faceDetected);
+
+                  _saving = false;
+                }
+              } else {
+                faceDetected = null;
+              }
+
+              _detectingFaces = false;
+            } catch (e) {
+              print(2);
+              print(e);
+              _detectingFaces = false;
+            }
+          } catch (e) {
+            print(e);
+            print(1);
+          }
+        }
+      });
     } on CameraException catch (e) {
       log("Start stream error: $e");
       _cameraController?.stopImageStream();

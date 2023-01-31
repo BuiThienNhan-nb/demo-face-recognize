@@ -1,6 +1,8 @@
+
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:injectable/injectable.dart';
@@ -34,26 +36,8 @@ class FaceDetectorService {
       InputImage.fromFilePath(filePath);
 
   Future<void> detectFacesFromImage(CameraImage image) async {
-    InputImageData _firebaseImageMetadata = InputImageData(
-      imageRotation:
-          cameraService.cameraRotation ?? InputImageRotation.rotation0deg,
-      inputImageFormat: InputImageFormat.nv21,
-      size: Size(image.width.toDouble(), image.height.toDouble()),
-      planeData: image.planes.map(
-        (Plane plane) {
-          return InputImagePlaneMetadata(
-            bytesPerRow: plane.bytesPerRow,
-            height: plane.height,
-            width: plane.width,
-          );
-        },
-      ).toList(),
-    );
 
-    InputImage _firebaseVisionImage = InputImage.fromBytes(
-      bytes: image.planes[0].bytes,
-      inputImageData: _firebaseImageMetadata,
-    );
+    InputImage _firebaseVisionImage =  image.toInputImage(InputImageRotation.rotation0deg);
 
     _faces = await _faceDetector.processImage(_firebaseVisionImage);
   }
