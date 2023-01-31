@@ -16,7 +16,8 @@ import '../model/user_model.dart';
 class MLService {
   Interpreter? _interpreter;
   double threshold = 0.5;
-
+  List _predictedData = [];
+  List get predictedData => _predictedData;
   Future initialize() async {
     late Delegate delegate;
     try {
@@ -120,6 +121,20 @@ class MLService {
       }
     }
     return predictedResult;
+  }
+
+  void setCurrentPrediction(CameraImage cameraImage, Face? face) {
+    if (_interpreter == null) throw Exception('Interpreter is null');
+    if (face == null) throw Exception('Face is null');
+    List input = _preProcess(cameraImage, face);
+
+    input = input.reshape([1, 112, 112, 3]);
+    List output = List.generate(1, (index) => List.filled(192, 0));
+
+    _interpreter?.run(input, output);
+    output = output.reshape([192]);
+
+    _predictedData = List.from(output);
   }
 
   double _euclideanDistance(List? e1, List? e2) {

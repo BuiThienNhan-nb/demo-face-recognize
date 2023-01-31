@@ -24,6 +24,12 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
+  String? imagePath;
+  Face? faceDetected;
+  Size? imageSize;
+  bool _saving = false;
+  bool _detectingFaces = false;
+  bool pictureTaken = false;
   CameraService cameraService = GetIt.I<CameraService>();
   FaceDetectorService faceDetectorService = GetIt.I<FaceDetectorService>();
 
@@ -44,15 +50,48 @@ class _CameraViewState extends State<CameraView> {
 
   initCamera() async {
     setState(() => _initializing = true);
-    await GetIt.I<MLService>().initialize();
+    var temp = await GetIt.I<MLService>().initialize();
+
     await cameraService.initialize().then(
       (_) {
         if (!mounted) {
           return;
         }
 
-        cameraService.startStream(processCameraImage);
-        setState(() {});
+        imageSize = cameraService.getImageSize();
+
+        cameraService.cameraController?.startImageStream((image) async {
+          if (cameraService.cameraController != null) {
+            if (_detectingFaces) return;
+
+            _detectingFaces = true;
+
+            try {
+              await faceDetectorService.detectFacesFromImage(image);
+
+              if (faceDetectorService.faces.isNotEmpty) {
+                setState(() {
+                  faceDetected = faceDetectorService.faces[0];
+                });
+                if (_saving) {
+                  temp.setCurrentPrediction(image, faceDetected);
+                  setState(() {
+                    _saving = false;
+                  });
+                }
+              } else {
+                setState(() {
+                  faceDetected = null;
+                });
+              }
+
+              _detectingFaces = false;
+            } catch (e) {
+              print(e);
+              _detectingFaces = false;
+            }
+          }
+        });
       },
     );
     setState(() => _initializing = false);
