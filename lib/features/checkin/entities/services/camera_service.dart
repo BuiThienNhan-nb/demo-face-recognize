@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'dart:io' show Platform;
+import 'dart:ui';
+
 import 'package:camera/camera.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:injectable/injectable.dart';
@@ -89,5 +91,14 @@ class CameraService {
     } catch (e) {
       log("Dispose camera error: $e");
     }
+  }
+
+  Size getImageSize() {
+    assert(cameraController != null, 'Camera controller not initialized');
+    assert(cameraController!.value.previewSize != null, 'Preview size is null');
+    return Size(
+      cameraController!.value.previewSize!.height,
+      cameraController!.value.previewSize!.width,
+    );
   }
 }
