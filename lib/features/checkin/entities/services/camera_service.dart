@@ -21,7 +21,6 @@ class CameraService {
   bool _detectingFaces = false;
   bool pictureTaken = false;
   Face? faceDetected;
-  bool _saving = false;
 
   String? _imagePath;
   String? get imagePath => _imagePath;
@@ -92,11 +91,7 @@ class CameraService {
               if (detectorService.faces.isNotEmpty) {
                 faceDetected = detectorService.faces[0];
 
-                if (_saving) {
-                  mlService.setCurrentPrediction(onAvailable, faceDetected);
-
-                  _saving = false;
-                }
+                mlService.setCurrentPrediction(onAvailable, faceDetected);
               } else {
                 faceDetected = null;
               }

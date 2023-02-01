@@ -50,11 +50,10 @@ class _CameraViewState extends State<CameraView> {
     setState(() => _initializing = true);
     await GetIt.I<MLService>().initialize();
     await cameraService.initialize().then(
-          (_) {
+      (_) {
         if (!mounted) {
           return;
         }
-
         cameraService.startStream(processCameraImage);
         setState(() {});
       },
