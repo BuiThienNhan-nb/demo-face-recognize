@@ -91,7 +91,7 @@ class CameraService {
               if (detectorService.faces.isNotEmpty) {
                 faceDetected = detectorService.faces[0];
 
-                mlService.setCurrentPrediction(onAvailable, faceDetected);
+                // mlService.setCurrentPrediction(onAvailable, faceDetected);
               } else {
                 faceDetected = null;
               }
