@@ -13,6 +13,8 @@ class FaceDetectorService {
     ),
   );
 
+  Face? face;
+
   FaceDetector get faceDetector => _faceDetector;
 
   InputImage createInputImageFromCameraImage(

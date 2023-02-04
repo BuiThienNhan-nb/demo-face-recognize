@@ -1,20 +1,22 @@
 import 'dart:developer';
 
 import 'package:camera/camera.dart';
-import 'package:face_recognize_demo/base/base_state.dart';
-import 'package:face_recognize_demo/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../base/base_state.dart';
+import '../../../../main.dart';
 import '../../entities/model/user_model.dart';
 import '../../entities/services/camera_service.dart';
 import '../../entities/services/face_detector_service.dart';
 import '../../entities/services/ml_service.dart';
 import '../states/check_in_store.dart';
 import '../widgets/camera_preview_widget.dart';
+import '../widgets/face_painter.dart';
 
 class CheckInPage extends StatefulWidget {
   const CheckInPage({super.key});
@@ -29,6 +31,7 @@ class _CheckInPageState extends State<CheckInPage> {
   MLService mlService = GetIt.I<MLService>();
   CheckInStore? store;
   Face? faceDetected;
+  Size? size;
 
   bool _canProcess = true;
   bool _isBusy = false;
@@ -71,6 +74,7 @@ class _CheckInPageState extends State<CheckInPage> {
   Future<void> processImage(
     InputImage inputImage,
     CameraImage cameraImage,
+    Size imageSize,
   ) async {
     if (!_canProcess) return;
     if (_isBusy) return;
@@ -81,6 +85,7 @@ class _CheckInPageState extends State<CheckInPage> {
       (faces) async {
         if (faces.isNotEmpty) {
           faceDetected = faces.first;
+          size = imageSize;
           if (_checkIn) {
             log(currentAppUsers.toString());
             final data =
@@ -128,20 +133,35 @@ class _CheckInPageState extends State<CheckInPage> {
           ),
           body: store!.state == BaseState.loaded
               ? Stack(
+                  fit: StackFit.expand,
                   alignment: Alignment.bottomCenter,
-                  children: [
+                  children: <Widget>[
                     CameraView(
-                      onImage: (inputImage, cameraImage) {
-                        processImage(inputImage, cameraImage);
+                      onImage: (inputImage, cameraImage, imageSize) {
+                        processImage(inputImage, cameraImage, imageSize);
                       },
                     ),
-                    TextButton(
-                      onPressed: checkIn,
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.white),
+                    if (faceDetected != null)
+                      CustomPaint(
+                        painter: FacePainter(
+                          imageSize: size!,
+                          face: faceDetected,
+                        ),
                       ),
-                      child: const Text("Check In"),
+                    Positioned(
+                      bottom: 12.w,
+                      child: SizedBox(
+                        height: 40.h,
+                        width: 120.w,
+                        child: TextButton(
+                          onPressed: checkIn,
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.white),
+                          ),
+                          child: const Text("Check In"),
+                        ),
+                      ),
                     ),
                   ],
                 )

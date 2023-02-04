@@ -16,6 +16,7 @@ class CameraView extends StatefulWidget {
   final Function(
     InputImage inputImage,
     CameraImage cameraImage,
+    Size imageSize,
   ) onImage;
 
   @override
@@ -67,6 +68,10 @@ class _CameraViewState extends State<CameraView> {
     widget.onImage(
       inputImage,
       cameraImage,
+      Size(
+        cameraService.cameraController!.value.previewSize!.height,
+        cameraService.cameraController!.value.previewSize!.width,
+      ),
     );
   }
 
