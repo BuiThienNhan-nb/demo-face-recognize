@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
+import '../../../FaceDetector/facePainter.dart';
 import '../../entities/services/camera_service.dart';
 import '../../entities/services/face_detector_service.dart';
 
@@ -24,6 +25,10 @@ class CameraView extends StatefulWidget {
 }
 
 class _CameraViewState extends State<CameraView> {
+  String? imagePath;
+  Face? faceDetected;
+  Size? imageSize;
+  bool pictureTaken = false;
   CameraService cameraService = GetIt.I<CameraService>();
   FaceDetectorService faceDetectorService = GetIt.I<FaceDetectorService>();
 
@@ -50,7 +55,6 @@ class _CameraViewState extends State<CameraView> {
         if (!mounted) {
           return;
         }
-
         cameraService.startStream(processCameraImage);
         setState(() {});
       },
@@ -99,6 +103,13 @@ class _CameraViewState extends State<CameraView> {
                         CameraPreview(
                           cameraService.cameraController!,
                         ),
+                        if (faceDetectorService.faceDetected)
+                          CustomPaint(
+                            painter: FacePainter(
+                              face: faceDetectorService.faces[0],
+                              imageSize: cameraService.getImageSize(),
+                            ),
+                          )
                       ],
                     ),
                   ),
